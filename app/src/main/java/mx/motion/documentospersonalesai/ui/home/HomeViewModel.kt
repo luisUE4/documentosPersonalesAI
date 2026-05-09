@@ -50,6 +50,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 // Configuración para cargar el modelo local (Gemma)
 
                 val modelDir = getApplication<Application>().filesDir
+                //data/user/0/mx.motion.documentospersonalesai/files/decoder_model_merged_14.onnx
+                // para copiar los archivos se usa "adb shell"
+                // ese comando es como un ssh al android
+                // pero los archivos de la aplicacion estan restringidos por permisos root
+                // primero hay que copiar los archivos a /data/local/tmp
+                // cambiarles los permisos chmod 777 archivo
+                // y desde fuera de adb shell (osea en mi terminal windows)
+                //.\adb.exe shell "run-as mx.motion.documentospersonalesai cp /data/local/tmp/decoder_model_merged_q4.onnx_data_1 /data/data/mx.motion.documentospersonalesai/files/"
+                // hacer eso para cada archivo
 
                 // Crear la carpeta si no existe
                 if (!modelDir.exists()) {
@@ -59,6 +68,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 //val visionPath = File(modelDir, "vision_encoder_q4.onnx").absolutePath
                 val modelFile = File(modelDir, "decoder_model_merged_q4.onnx")
                 val decoderPath = modelFile.absolutePath
+
+                // Loguear tamaño y archivos para depuración
+                if (modelFile.exists()) {
+                    val sizeMB = modelFile.length().toFloat() / (1024 * 1024)
+                    Log.d("HomeViewModel", "Archivo principal ONNX: ${modelFile.name} (${String.format("%.2f", sizeMB)} MB)")
+                    
+                    val files = modelDir.listFiles()?.map { 
+                        "${it.name}: ${String.format("%.2f", it.length().toFloat() / (1024 * 1024))} MB"
+                    } ?: emptyList()
+                    Log.d("HomeViewModel", "Contenido completo de la carpeta: $files")
+                }
 
                 if (!modelFile.exists()) {
                     withContext(Dispatchers.Main) {
@@ -87,10 +107,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 
                 withContext(Dispatchers.Main) {
                     _aiResponse.value = "Modelo Gemma cargado localmente."
+                    Log.d("HomeViewModel", "LlmInference inicializado con éxito.")
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _aiResponse.value = "Error al cargar Gemma: ${e.localizedMessage}. Asegúrate de tener 'gemma.bin' en assets."
+                    val errorMsg = e.localizedMessage ?: "Error desconocido"
+                    _aiResponse.value = "Error al cargar Gemma: $errorMsg"
+                    _showErrorAlert.value = "Error de inicialización: El archivo del modelo podría estar incompleto o ser incompatible."
+                    Log.e("HomeViewModel", "Error fatal al inicializar: $errorMsg", e)
                 }
             }
         }

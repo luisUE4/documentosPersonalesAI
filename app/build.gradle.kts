@@ -37,8 +37,17 @@ android {
       viewBinding = true
    }
    // Configuración para que el modelo local AI no se comprima
+   // Al agregar estas extensiones, Android las dejará "planas" en el disco
+   // permitiendo que el motor de IA haga mmap (memory mapping) correctamente.
    androidResources {
-        noCompress += "bin"
+        noCompress += listOf("onnx", "bin", "data", "onnx_data")
+   }
+
+   packaging {
+      resources {
+         // Esto evita que archivos comunes de IA se compriman
+         excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      }
    }
 }
 
