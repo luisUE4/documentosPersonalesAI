@@ -43,13 +43,27 @@
         app:layout_constraintTop_toBottomOf="@id/et_input" />
 
     <TextView
-        android:id="@+id/text_home"
+        android:id="@+id/text_input_ai_prompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:textAlignment="center"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/btn_send"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Propiedades clave -->
+    <TextView
+        android:id="@+id/text_ai_response"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:padding="16dp"
+        android:text="tu_texto_muy_largo"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:maxLines="100"
+        app:layout_constraintTop_toBottomOf="@id/text_input_ai_prompt"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

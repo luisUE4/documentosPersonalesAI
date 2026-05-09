@@ -36,10 +36,13 @@ android {
    buildFeatures {
       viewBinding = true
    }
+   // Configuración para que el modelo local AI no se comprima
+   androidResources {
+        noCompress += "bin"
+   }
 }
 
 dependencies {
-
    implementation(libs.androidx.core.ktx)
    implementation(libs.androidx.appcompat)
    implementation(libs.material)
@@ -48,6 +51,7 @@ dependencies {
    implementation(libs.androidx.lifecycle.viewmodel.ktx)
    implementation(libs.androidx.navigation.fragment.ktx)
    implementation(libs.androidx.navigation.ui.ktx)
+   implementation(libs.mediapipe.tasks.genai)
    testImplementation(libs.junit)
    androidTestImplementation(libs.androidx.junit)
    androidTestImplementation(libs.androidx.espresso.core)
