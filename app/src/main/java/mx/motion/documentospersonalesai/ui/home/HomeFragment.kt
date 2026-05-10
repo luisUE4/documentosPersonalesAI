@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import mx.motion.documentospersonalesai.databinding.FragmentHomeBinding
@@ -54,13 +57,33 @@ class HomeFragment : Fragment() {
         }
 
         binding.btnSend.setOnClickListener {
-            val query = binding.etInput.text.toString()
-            if (query.isNotBlank()) {
-                homeViewModel.sendPrompt(query)
+            sendQuery()
+        }
+
+        binding.etInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                sendQuery()
+                true
+            } else {
+                false
             }
         }
 
         return root
+    }
+
+    private fun sendQuery() {
+        val query = binding.etInput.text.toString()
+        if (query.isNotBlank()) {
+            homeViewModel.sendPrompt(query)
+            hideKeyboard()
+            binding.etInput.text.clear()
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.etInput.windowToken, 0)
     }
 
     override fun onStart() {

@@ -64,7 +64,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val config = EngineConfig(
                     modelPath = modelPath,
                     backend = Backend.GPU(), // Usar GPU para mejor rendimiento en texto
-                    maxNumTokens = 512
+                    maxNumTokens = 2048
                 )
 
                 val newEngine = Engine(config)
