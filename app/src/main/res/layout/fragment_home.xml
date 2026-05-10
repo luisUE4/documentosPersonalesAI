@@ -25,11 +25,13 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:hint="Ingresa el texto aquí"
-        android:inputType="text"
+        android:inputType="textMultiLine"
+        android:maxLines="4"
+        android:gravity="top"
         android:imeOptions="actionSend"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_send"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
 
@@ -37,104 +39,100 @@
         android:id="@+id/btn_send"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:text="Enviar"
-        app:layout_constraintEnd_toStartOf="@+id/btn_camera"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_input" />
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/et_input" />
 
     <ImageButton
         android:id="@+id/btn_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:padding="12dp"
         android:src="@android:drawable/ic_menu_camera"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Tomar foto"
         app:layout_constraintEnd_toStartOf="@+id/btn_gallery"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btn_send"
-        app:layout_constraintTop_toBottomOf="@id/et_input"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_send" />
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_input" />
 
     <ImageButton
         android:id="@+id/btn_gallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:padding="12dp"
         android:src="@android:drawable/ic_menu_gallery"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Abrir galería"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_camera"
+        app:layout_constraintEnd_toStartOf="@+id/btn_pdf"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btn_camera"
-        app:layout_constraintTop_toBottomOf="@id/et_input"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_send" />
+        app:layout_constraintTop_toTopOf="@+id/btn_camera" />
+
+    <Button
+        android:id="@+id/btn_pdf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PDF"
+        android:textSize="12sp"
+        android:padding="4dp"
+        android:textColor="@color/white"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_gallery"
+        app:layout_constraintTop_toTopOf="@+id/btn_camera" />
 
     <TextView
         android:id="@+id/text_input_ai_prompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         android:textAlignment="center"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/btn_send"
+        android:textSize="18sp"
+        android:textColor="#FFD700"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/btn_camera"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <LinearLayout
-        android:id="@+id/layout_attached_photo"
+        android:id="@+id/layout_attached_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="0dp"
         android:layout_marginEnd="16dp"
-        android:background="#1AFFFFFF"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="8dp"
+        android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_input_ai_prompt"
         tools:visibility="visible">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Foto adjunta"
-                android:textColor="@color/title_text_color"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_photo_info"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="nombre.jpg (0x0 px)"
-                android:textColor="@color/white"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/btn_remove_photo"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Remover foto"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@android:color/holo_red_light" />
+            android:text="Archivos adjuntos"
+            android:textColor="@color/title_text_color"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_attachments"
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_attachment" />
     </LinearLayout>
 
     <!-- Propiedades clave -->
@@ -142,16 +140,17 @@
         android:id="@+id/text_ai_response"
         android:layout_width="0dp"
         android:layout_height="300dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:padding="16dp"
         android:text="Cargando AI ... porfavor espera."
         android:textSize="20sp"
+        android:background="@drawable/ai_response_border"
         android:scrollbars="vertical"
         android:scrollbarSize="10dp"
         android:scrollbarThumbVertical="@color/gray_600"
         android:fadeScrollbars="false"
         android:maxLines="100"
-        app:layout_constraintTop_toBottomOf="@id/layout_attached_photo"
+        app:layout_constraintTop_toBottomOf="@id/layout_attached_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

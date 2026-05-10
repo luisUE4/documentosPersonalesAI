@@ -1,30 +1,37 @@
 package mx.motion.documentospersonalesai.ui.home
 
-import android.os.Bundle
-import android.text.Html
-import android.text.method.ScrollingMovementMethod
-import android.net.Uri
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Environment
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.Bundle
+import android.os.ParcelFileDescriptor
+import android.provider.OpenableColumns
+import android.text.Html
+import android.text.method.ScrollingMovementMethod
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import mx.motion.documentospersonalesai.R
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentHomeBinding
+import mx.motion.documentospersonalesai.databinding.ItemAttachmentBinding
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -32,58 +39,61 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var attachmentAdapter: AttachmentAdapter
 
     private var loadingDialog: AlertDialog? = null
     private var photoUri: Uri? = null
-    private var currentPhotoPath: String? = null
+    private val attachedImagePaths = mutableListOf<String>()
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
         uri?.let {
             photoUri = it
-            // Para LiteRT-LM necesitamos la ruta del archivo. 
-            // Como PickVisualMedia devuelve una URI de contenido, la copiaremos a nuestra carpeta de imágenes.
             copyUriToInternalStorage(it)
-            showPhotoInfo()
+            showAttachedInfo()
+        }
+    }
+
+    private val pickPdfLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        uri?.let {
+            copyPdfToInternalStorage(it)
         }
     }
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
-            optimizeCapturedPhoto() // Redimensionar después de capturar
+            val path = tempCameraPath ?: return@registerForActivityResult
+            attachedImagePaths.add(path)
+            optimizeCapturedPhoto(path)
             binding.etInput.setText("extrae el texto de la foto")
             binding.textAiResponse.text = "Foto lista para procesar."
-            showPhotoInfo()
+            showAttachedInfo()
         } else {
             binding.textAiResponse.text = "Error al capturar la foto."
-            currentPhotoPath = null
-            binding.layoutAttachedPhoto.visibility = View.GONE
         }
     }
+
+    private var tempCameraPath: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
-
+        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        // Habilitar scroll en el TextView de respuesta
+        setupRecyclerView()
+
         binding.textAiResponse.movementMethod = ScrollingMovementMethod()
 
-        // Observar el prompt enviado
         homeViewModel.promptText.observe(viewLifecycleOwner) {
             binding.textInputAiPrompt.text = it
+            binding.textInputAiPrompt.visibility = if (it.isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
-        // Observar la respuesta de la IA
         homeViewModel.aiResponse.observe(viewLifecycleOwner) {
             binding.textAiResponse.text = Html.fromHtml(it, Html.FROM_HTML_MODE_LEGACY)
-            
-            // Auto-scroll al final cuando llega nuevo texto
             val scrollAmount = binding.textAiResponse.layout?.getLineTop(binding.textAiResponse.lineCount) ?: 0
             val viewHeight = binding.textAiResponse.height - binding.textAiResponse.paddingTop - binding.textAiResponse.paddingBottom
             if (scrollAmount > viewHeight) {
@@ -91,42 +101,27 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // Observar estado de carga
         homeViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) showLoadingDialog() else hideLoadingDialog()
         }
 
-        // Observar alertas de error
         homeViewModel.showErrorAlert.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
                 AlertDialog.Builder(requireContext())
                     .setTitle("Error de Modelo")
                     .setMessage(it)
-                    .setPositiveButton("OK") { _, _ ->
-                        homeViewModel.clearErrorAlert()
-                    }
-                    .setOnDismissListener {
-                        homeViewModel.clearErrorAlert()
-                    }
+                    .setPositiveButton("OK") { _, _ -> homeViewModel.clearErrorAlert() }
+                    .setOnDismissListener { homeViewModel.clearErrorAlert() }
                     .show()
             }
         }
 
-        binding.btnSend.setOnClickListener {
-            sendQuery()
-        }
-
-        binding.btnCamera.setOnClickListener {
-            openCamera()
-        }
-
+        binding.btnSend.setOnClickListener { sendQuery() }
+        binding.btnCamera.setOnClickListener { openCamera() }
         binding.btnGallery.setOnClickListener {
             pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
-
-        binding.btnRemovePhoto.setOnClickListener {
-            removeAttachedPhoto()
-        }
+        binding.btnPdf.setOnClickListener { pickPdfLauncher.launch(arrayOf("application/pdf")) }
 
         binding.etInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -140,40 +135,94 @@ class HomeFragment : Fragment() {
         return root
     }
 
+    private fun setupRecyclerView() {
+        attachmentAdapter = AttachmentAdapter(attachedImagePaths) { path ->
+            attachedImagePaths.remove(path)
+            showAttachedInfo()
+        }
+        binding.rvAttachments.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rvAttachments.adapter = attachmentAdapter
+    }
+
     private fun sendQuery() {
         val query = binding.etInput.text.toString()
         if (query.isNotBlank()) {
-            homeViewModel.sendPrompt(query, currentPhotoPath)
+            homeViewModel.sendPrompt(query, attachedImagePaths.toList())
             hideKeyboard()
             binding.etInput.text.clear()
-            removeAttachedPhoto() // Limpiar UI después de enviar
+            removeAttachedFile()
         }
     }
 
-    private fun removeAttachedPhoto() {
-        currentPhotoPath = null
+    private fun removeAttachedFile() {
+        attachedImagePaths.clear()
         photoUri = null
-        binding.layoutAttachedPhoto.visibility = View.GONE
+        showAttachedInfo()
     }
 
-    private fun showPhotoInfo() {
-        currentPhotoPath?.let { path ->
-            val file = File(path)
-            if (file.exists()) {
-                val options = BitmapFactory.Options().apply {
-                    inJustDecodeBounds = true
+    private fun showAttachedInfo() {
+        attachmentAdapter.notifyDataSetChanged()
+        binding.layoutAttachedContainer.visibility = if (attachedImagePaths.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun copyPdfToInternalStorage(uri: Uri) {
+        try {
+            val pdfFolder = File(requireContext().filesDir, "fotosPDF")
+            if (!pdfFolder.exists()) pdfFolder.mkdirs()
+
+            var pdfName = "document"
+            requireContext().contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (cursor.moveToFirst()) {
+                    pdfName = cursor.getString(nameIndex).replace(".pdf", "", ignoreCase = true)
                 }
-                BitmapFactory.decodeFile(path, options)
-                val info = "${file.name} (${options.outWidth}x${options.outHeight} px)"
-                binding.tvPhotoInfo.text = info
-                binding.layoutAttachedPhoto.visibility = View.VISIBLE
             }
+
+            val timeStamp: String = SimpleDateFormat("HH.dd.MM", Locale.getDefault()).format(Date())
+            val tempFile = File(requireContext().cacheDir, "temp.pdf")
+            requireContext().contentResolver.openInputStream(uri)?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+
+            val pfd = ParcelFileDescriptor.open(tempFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            val renderer = PdfRenderer(pfd)
+
+            for (i in 0 until renderer.pageCount) {
+                val page = renderer.openPage(i)
+                val maxSize = 1080
+                val ratio = Math.min(maxSize.toFloat() / page.width, maxSize.toFloat() / page.height)
+                val newWidth = (page.width * ratio).toInt()
+                val newHeight = (page.height * ratio).toInt()
+
+                val bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                canvas.drawColor(Color.WHITE)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+                val imageFile = File(pdfFolder, "pagina${i + 1}-${pdfName}-${timeStamp}.png")
+                imageFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+
+                attachedImagePaths.add(imageFile.absolutePath)
+                bitmap.recycle()
+                page.close()
+            }
+
+            renderer.close()
+            pfd.close()
+            tempFile.delete()
+
+            binding.etInput.setText("analiza este documento pdf")
+            showAttachedInfo()
+        } catch (e: Exception) {
+            binding.textAiResponse.text = "Error al procesar PDF: ${e.localizedMessage}"
         }
     }
 
     private fun hideKeyboard() {
         val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(binding.etInput.windowToken, 0)
+        imm?.hideSoftInputFromWindow(binding.etInput.windowToken, 0)
     }
 
     private fun showLoadingDialog() {
@@ -193,103 +242,54 @@ class HomeFragment : Fragment() {
 
     private fun openCamera() {
         val photoFile = createImageFile()
-        currentPhotoPath = photoFile.absolutePath
-        photoUri = FileProvider.getUriForFile(
-            requireContext(),
-            "${requireContext().packageName}.fileprovider",
-            photoFile
-        )
+        tempCameraPath = photoFile.absolutePath
+        photoUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", photoFile)
         takePictureLauncher.launch(photoUri!!)
     }
 
-    private fun optimizeCapturedPhoto() {
-        currentPhotoPath?.let { path ->
-            try {
-                val file = File(path)
-                val originalBitmap = BitmapFactory.decodeFile(path) ?: return
-                
-                val maxSize = 1080
-                val width = originalBitmap.width
-                val height = originalBitmap.height
-                
-                if (width > maxSize || height > maxSize) {
-                    val (newWidth, newHeight) = if (width > height) {
-                        val ratio = width.toFloat() / maxSize
-                        maxSize to (height / ratio).toInt()
-                    } else {
-                        val ratio = height.toFloat() / maxSize
-                        (width / ratio).toInt() to maxSize
-                    }
-                    
-                    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true)
-                    file.outputStream().use { outputStream ->
-                        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                    }
-                    originalBitmap.recycle()
-                    scaledBitmap.recycle()
-                } else {
-                    originalBitmap.recycle()
-                }
-            } catch (e: Exception) {
-                // Manejar error de optimización silenciosamente o loguear
+    private fun optimizeCapturedPhoto(path: String) {
+        try {
+            val file = File(path)
+            val originalBitmap = BitmapFactory.decodeFile(path) ?: return
+            val maxSize = 1080
+            if (originalBitmap.width > maxSize || originalBitmap.height > maxSize) {
+                val ratio = Math.min(maxSize.toFloat() / originalBitmap.width, maxSize.toFloat() / originalBitmap.height)
+                val newWidth = (originalBitmap.width * ratio).toInt()
+                val newHeight = (originalBitmap.height * ratio).toInt()
+                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true)
+                file.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
+                originalBitmap.recycle()
+                scaledBitmap.recycle()
+            } else {
+                originalBitmap.recycle()
             }
-        }
+        } catch (e: Exception) {}
     }
 
     private fun createImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File = File(requireContext().filesDir, "images")
-        if (!storageDir.exists()) {
-            storageDir.mkdirs()
-        }
-        return File.createTempFile(
-            "JPEG_${timeStamp}_",
-            ".jpg",
-            storageDir
-        )
+        if (!storageDir.exists()) storageDir.mkdirs()
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
     private fun copyUriToInternalStorage(uri: Uri) {
         try {
             val photoFile = createImageFile()
             requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                // Decodificar el bitmap original
                 val originalBitmap = BitmapFactory.decodeStream(inputStream)
-                
-                // Calcular dimensiones para resize (max 1080p manteniendo aspecto)
                 val maxSize = 1080
-                val width = originalBitmap.width
-                val height = originalBitmap.height
-                
-                val (newWidth, newHeight) = if (width > height) {
-                    if (width > maxSize) {
-                        val ratio = width.toFloat() / maxSize
-                        maxSize to (height / ratio).toInt()
-                    } else width to height
-                } else {
-                    if (height > maxSize) {
-                        val ratio = height.toFloat() / maxSize
-                        (width / ratio).toInt() to maxSize
-                    } else width to height
-                }
-
-                // Crear el bitmap escalado
+                val ratio = Math.min(maxSize.toFloat() / originalBitmap.width, maxSize.toFloat() / originalBitmap.height)
+                val newWidth = (originalBitmap.width * ratio).toInt()
+                val newHeight = (originalBitmap.height * ratio).toInt()
                 val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true)
-                
-                // Guardar en el archivo con compresión JPEG
-                photoFile.outputStream().use { outputStream ->
-                    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                }
-                
-                // Liberar memoria de los bitmaps
+                photoFile.outputStream().use { out -> scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                 originalBitmap.recycle()
-                if (scaledBitmap != originalBitmap) {
-                    scaledBitmap.recycle()
-                }
+                if (scaledBitmap != originalBitmap) scaledBitmap.recycle()
             }
-            currentPhotoPath = photoFile.absolutePath
+            attachedImagePaths.add(photoFile.absolutePath)
             binding.etInput.setText("extrae el texto de la foto")
-            binding.textAiResponse.text = "Imagen de galería cargada y optimizada."
+            binding.textAiResponse.text = "Imagen cargada y optimizada."
         } catch (e: Exception) {
             binding.textAiResponse.text = "Error al cargar/optimizar imagen."
         }
@@ -308,5 +308,34 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private inner class AttachmentAdapter(
+        private val paths: List<String>,
+        private val onRemove: (String) -> Unit
+    ) : RecyclerView.Adapter<AttachmentAdapter.ViewHolder>() {
+
+        inner class ViewHolder(val binding: ItemAttachmentBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ItemAttachmentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val path = paths[position]
+            val file = File(path)
+            
+            val bitmap = BitmapFactory.decodeFile(path)
+            holder.binding.ivThumbnail.setImageBitmap(bitmap)
+            
+            holder.binding.tvPageNumber.text = file.name.substringBefore("-")
+            
+            holder.binding.btnRemoveItem.setOnClickListener {
+                onRemove(path)
+            }
+        }
+
+        override fun getItemCount() = paths.size
     }
 }

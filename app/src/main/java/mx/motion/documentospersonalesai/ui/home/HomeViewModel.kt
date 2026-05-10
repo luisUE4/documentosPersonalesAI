@@ -108,7 +108,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun sendPrompt(prompt: String, imagePath: String? = null) {
+    fun sendPrompt(prompt: String, imagePaths: List<String> = emptyList()) {
         _promptText.value = prompt
         
         if (engine == null || conversation == null) {
@@ -123,13 +123,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val responseBuilder = StringBuilder()
                 
-                // Preparar el contenido (Texto + Imagen opcional)
+                // Preparar el contenido (Texto + Imagen(es) opcional)
                 val contentList = mutableListOf<Content>()
                 
-                if (imagePath != null) {
-                    val file = File(imagePath)
+                imagePaths.forEach { path ->
+                    val file = File(path)
                     if (file.exists()) {
-                        contentList.add(Content.ImageFile(imagePath))
+                        contentList.add(Content.ImageFile(path))
                     }
                 }
                 
