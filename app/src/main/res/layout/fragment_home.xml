@@ -39,9 +39,41 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Enviar"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_camera"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/et_input" />
+
+    <ImageButton
+        android:id="@+id/btn_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="12dp"
+        android:src="@android:drawable/ic_menu_camera"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Tomar foto"
+        app:layout_constraintEnd_toStartOf="@+id/btn_gallery"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_send"
+        app:layout_constraintTop_toBottomOf="@id/et_input"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_send" />
+
+    <ImageButton
+        android:id="@+id/btn_gallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="12dp"
+        android:src="@android:drawable/ic_menu_gallery"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Abrir galería"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_camera"
+        app:layout_constraintTop_toBottomOf="@id/et_input"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_send" />
 
     <TextView
         android:id="@+id/text_input_ai_prompt"
@@ -54,17 +86,69 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/layout_attached_photo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="#1AFFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_input_ai_prompt"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Foto adjunta"
+                android:textColor="@color/title_text_color"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_photo_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="nombre.jpg (0x0 px)"
+                android:textColor="@color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_remove_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Remover foto"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@android:color/holo_red_light" />
+    </LinearLayout>
+
     <!-- Propiedades clave -->
     <TextView
         android:id="@+id/text_ai_response"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp"
         android:padding="16dp"
         android:text="Cargando AI ... porfavor espera."
         android:scrollbars="vertical"
         android:fadeScrollbars="false"
         android:maxLines="100"
-        app:layout_constraintTop_toBottomOf="@id/text_input_ai_prompt"
+        app:layout_constraintTop_toBottomOf="@id/layout_attached_photo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

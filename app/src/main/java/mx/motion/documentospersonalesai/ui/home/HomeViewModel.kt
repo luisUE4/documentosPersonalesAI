@@ -10,6 +10,8 @@ import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Conversation
+import com.google.ai.edge.litertlm.Contents
+import com.google.ai.edge.litertlm.Content
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,7 +73,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 val config = EngineConfig(
                     modelPath = modelPath,
-                    backend = Backend.GPU(), // Usar GPU para mejor rendimiento en texto
+                    backend = Backend.GPU(), // Usar GPU para el modelo de lenguaje
+                    visionBackend = Backend.GPU(), // Usar GPU para el codificador de imágenes
                     maxNumTokens = 2048
                 )
 
@@ -97,7 +100,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun sendPrompt(prompt: String) {
+    fun sendPrompt(prompt: String, imagePath: String? = null) {
         _promptText.value = prompt
         
         if (engine == null || conversation == null) {
@@ -110,8 +113,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val responseBuilder = StringBuilder()
+                
+                // Preparar el contenido (Texto + Imagen opcional)
+                val contentList = mutableListOf<Content>()
+                
+                if (imagePath != null) {
+                    val file = File(imagePath)
+                    if (file.exists()) {
+                        contentList.add(Content.ImageFile(imagePath))
+                    }
+                }
+                
+                contentList.add(Content.Text(prompt))
+                val contents = Contents.of(contentList)
+
                 // LiteRT-LM usa Flows de Kotlin para streaming por defecto
-                conversation?.sendMessageAsync(prompt)?.collect { token ->
+                conversation?.sendMessageAsync(contents)?.collect { token ->
                     responseBuilder.append(token)
                     withContext(Dispatchers.Main) {
                         _aiResponse.value = responseBuilder.toString()
