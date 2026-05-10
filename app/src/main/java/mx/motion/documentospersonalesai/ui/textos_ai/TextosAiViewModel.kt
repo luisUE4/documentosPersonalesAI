@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import java.io.File
 
 class TextosAiViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,72 +35,133 @@ class TextosAiViewModel(application: Application) : AndroidViewModel(application
     private val _statusMessage = MutableLiveData<String>()
     val statusMessage: LiveData<String> = _statusMessage
 
+    private val _statusText = MutableLiveData<String?>()
+    val statusText: LiveData<String?> = _statusText
+
     private var engine: Engine? = null
     private var conversation: Conversation? = null
     private var inferenceJob: Job? = null
 
-    fun setupModel() {
+    private suspend fun setupModelInternal() {
         if (engine != null) return
 
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) { _isLoading.value = true }
-            
-            val (isCompatible, reason) = isDeviceCompatible()
-            if (!isCompatible) {
+        val startTime = System.currentTimeMillis()
+        val avgTime = getAverageInitializationTime().toInt().coerceAtLeast(1)
+
+        val countdownJob = viewModelScope.launch(Dispatchers.Main) {
+            for (i in avgTime downTo 0) {
+                _statusText.value = "inicializando Inteligencia $i segundos restantes"
+                delay(1000)
+            }
+            _statusText.value = "inicializando Inteligencia ... casi listo"
+        }
+
+        withContext(Dispatchers.Main) { _isLoading.value = true }
+
+        val (isCompatible, reason) = isDeviceCompatible()
+        if (!isCompatible) {
+            countdownJob.cancel()
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                _aiResponse.value = "Error: $reason"
+            }
+            return
+        }
+
+        try {
+            val modelDir = getApplication<Application>().filesDir
+            val modelFile = File(modelDir, "gemma-4-E4B-it.litertlm")
+
+            if (!modelFile.exists()) {
+                countdownJob.cancel()
                 withContext(Dispatchers.Main) {
                     _isLoading.value = false
-                    _aiResponse.value = "Error: $reason"
+                    _aiResponse.value = "Error: No se encontró el modelo Gemma 4 en la carpeta interna."
                 }
-                return@launch
+                return
             }
 
-            try {
-                val modelDir = getApplication<Application>().filesDir
-                val modelFile = File(modelDir, "gemma-4-E4B-it.litertlm")
+            val config = EngineConfig(
+                modelPath = modelFile.absolutePath,
+                backend = Backend.GPU(),
+                maxNumTokens = 2048
+            )
 
-                if (!modelFile.exists()) {
-                    withContext(Dispatchers.Main) {
-                        _isLoading.value = false
-                        _aiResponse.value = "Error: No se encontró el modelo Gemma 4 en la carpeta interna."
-                    }
-                    return@launch
-                }
+            val newEngine = Engine(config)
+            newEngine.initialize()
+            engine = newEngine
+            conversation = newEngine.createConversation()
 
-                val config = EngineConfig(
-                    modelPath = modelFile.absolutePath,
-                    backend = Backend.GPU(),
-                    maxNumTokens = 2048
-                )
+            countdownJob.cancel()
+            withContext(Dispatchers.Main) {
+                _statusText.value = "procesando instruccion ..."
+            }
 
-                val newEngine = Engine(config)
-                newEngine.initialize()
-                engine = newEngine
-                conversation = newEngine.createConversation()
+            val endTime = System.currentTimeMillis()
+            val durationSeconds = (endTime - startTime) / 1000.0
+            saveInitializationTime(durationSeconds)
 
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                    _statusMessage.value = "Modelo Gemma 4 listo."
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                    _aiResponse.value = "Error al cargar IA: ${e.localizedMessage}"
-                }
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                _statusMessage.value = "Modelo Gemma 4 listo."
+            }
+        } catch (e: Exception) {
+            countdownJob.cancel()
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                _aiResponse.value = "Error al cargar IA: ${e.localizedMessage}"
             }
         }
     }
 
-    fun sendPrompt(instruction: String, contextText: String) {
-        if (engine == null || conversation == null) {
-            _aiResponse.value = "La IA no está inicializada."
-            return
+    private fun getAverageInitializationTime(): Double {
+        return try {
+            val statsFile = File(File(getApplication<Application>().filesDir, "estadistica"), "ai_tiempo_de_inicializado.txt")
+            if (statsFile.exists()) {
+                val lines = statsFile.readLines()
+                if (lines.isNotEmpty()) {
+                    lines.mapNotNull { it.toDoubleOrNull() }.average()
+                } else 30.0
+            } else 30.0
+        } catch (e: Exception) {
+            30.0
         }
+    }
 
+    private fun saveInitializationTime(seconds: Double) {
+        try {
+            val statsDir = File(getApplication<Application>().filesDir, "estadistica")
+            if (!statsDir.exists()) statsDir.mkdirs()
+            val statsFile = File(statsDir, "ai_tiempo_de_inicializado.txt")
+            
+            val lines = if (statsFile.exists()) statsFile.readLines() else emptyList()
+            
+            if (lines.size >= 20) {
+                statsFile.writeText("$seconds\n")
+            } else {
+                statsFile.appendText("$seconds\n")
+            }
+        } catch (e: Exception) {
+            Log.e("TextosAiViewModel", "Error al guardar tiempo", e)
+        }
+    }
+
+    fun sendPrompt(instruction: String, contextText: String) {
         _promptText.value = instruction
         _isLoading.value = true
         inferenceJob?.cancel()
         
         inferenceJob = viewModelScope.launch(Dispatchers.IO) {
+            if (engine == null || conversation == null) {
+                setupModelInternal()
+            } else {
+                withContext(Dispatchers.Main) {
+                    _statusText.value = null
+                }
+            }
+
+            if (engine == null || conversation == null) return@launch
+
             try {
                 val responseBuilder = StringBuilder()
                 

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -32,8 +33,6 @@ class TextosAiFragment : Fragment() {
         
         setupUI()
         observeViewModel()
-        
-        viewModel.setupModel()
         
         return binding.root
     }
@@ -108,6 +107,13 @@ class TextosAiFragment : Fragment() {
             binding.textAiResponse.text = response
         }
 
+        viewModel.statusText.observe(viewLifecycleOwner) { status ->
+            loadingDialog?.findViewById<TextView>(R.id.tv_status_text)?.apply {
+                text = status
+                visibility = if (status.isNullOrBlank()) View.GONE else View.VISIBLE
+            }
+        }
+
         viewModel.promptText.observe(viewLifecycleOwner) { prompt ->
             if (prompt.isNotBlank()) {
                 binding.layoutPromptContainer.visibility = View.VISIBLE
@@ -141,6 +147,12 @@ class TextosAiFragment : Fragment() {
                 .create()
         }
         loadingDialog?.show()
+
+        loadingDialog?.findViewById<TextView>(R.id.tv_status_text)?.apply {
+            val status = viewModel.statusText.value
+            text = status
+            visibility = if (status.isNullOrBlank()) View.GONE else View.VISIBLE
+        }
     }
 
     private fun hideLoadingDialog() {
