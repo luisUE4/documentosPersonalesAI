@@ -2,12 +2,12 @@
     <string name="app_name">DocumentosPersonalesAI</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_title">Inteligencia artificial</string>
+    <string name="nav_header_subtitle">analizador de documentos</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
-    <string name="menu_home">Home</string>
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_home">fotos IA</string>
+    <string name="menu_gallery">audio IA</string>
+    <string name="menu_slideshow">textos IA</string>
 </resources>

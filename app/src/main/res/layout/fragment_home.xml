@@ -10,47 +10,72 @@
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Analizador de documentos"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="Analiza foto o documento PDF"
         android:textColor="@color/title_text_color"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/et_input"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_input"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="8dp"
-        android:hint="Ingresa el texto aquí"
-        android:inputType="textMultiLine|textCapSentences|textImeMultiLine"
-        android:maxLines="4"
-        android:scrollHorizontally="false"
-        android:gravity="top"
-        android:imeOptions="actionSend"
-        app:layout_constraintEnd_toStartOf="@+id/btn_send"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_title" />
-
-    <Button
-        android:id="@+id/btn_send"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Enviar"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/et_input"
+        app:cardBackgroundColor="#F5F5F5"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="3dp"
+        app:strokeWidth="0dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/et_input" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp">
+
+            <EditText
+                android:id="@+id/et_input"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:hint="Ingresa el texto aquí"
+                android:textColor="#1e2121"
+                android:inputType="textMultiLine|textCapSentences|textImeMultiLine"
+                android:maxLines="4"
+                android:padding="12dp"
+                android:gravity="top"
+                android:imeOptions="actionSend"
+                app:layout_constraintEnd_toStartOf="@+id/btn_send"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enviar"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#3e7b87"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <ImageButton
         android:id="@+id/btn_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:padding="12dp"
         android:src="@android:drawable/ic_menu_camera"
         android:background="?attr/selectableItemBackgroundBorderless"
@@ -59,7 +84,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_input" />
+        app:layout_constraintTop_toBottomOf="@id/card_input" />
 
     <ImageButton
         android:id="@+id/btn_gallery"

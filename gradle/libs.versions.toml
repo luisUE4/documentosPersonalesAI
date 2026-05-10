@@ -13,6 +13,8 @@ lifecycleViewmodelKtx = "2.9.3"
 navigationFragmentKtx = "2.9.3"
 navigationUiKtx = "2.9.3"
 litertlm = "0.11.0"
+vosk = "0.3.47"
+ffmpegkit = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -27,6 +29,8 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 litert-lm = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
+vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "vosk" }
+ffmpeg-kit = { group = "com.antonkarpenko", name = "ffmpeg-kit-full-gpl", version.ref = "ffmpegkit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

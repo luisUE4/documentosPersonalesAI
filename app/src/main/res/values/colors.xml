@@ -16,5 +16,5 @@
     <color name="warm_start">#162d52</color> <!-- Marrón casi negro -->
     <color name="warm_middle">#162d52</color> <!-- color central -->
     <color name="warm_end">#02317d</color>   <!-- Moka oscuro -->
-    <color name="title_text_color">#FFCCBC</color> <!-- Durazno suave para contraste -->
+    <color name="title_text_color">#AEC6CF</color> <!-- Durazno suave para contraste -->
 </resources>

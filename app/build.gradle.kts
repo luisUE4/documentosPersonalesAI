@@ -69,6 +69,8 @@ dependencies {
    implementation(libs.androidx.navigation.fragment.ktx)
    implementation(libs.androidx.navigation.ui.ktx)
    implementation(libs.litert.lm)
+   implementation(libs.vosk.android)
+   implementation(libs.ffmpeg.kit)
    testImplementation(libs.junit)
    androidTestImplementation(libs.androidx.junit)
    androidTestImplementation(libs.androidx.espresso.core)
