@@ -315,12 +315,10 @@ class HomeFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        homeViewModel.setupModel()
     }
 
     override fun onStop() {
         super.onStop()
-        homeViewModel.closeModel()
     }
 
     override fun onDestroyView() {

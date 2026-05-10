@@ -45,86 +45,105 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         return "<b><font color='#FFD700'>$formatted</font></b>"
     }
 
-    fun setupModel() {
+    private suspend fun setupModelInternal() {
         if (engine != null) return
 
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) { _isLoading.value = true }
-            val (isCompatible, reason) = isDeviceCompatible()
-            if (!isCompatible) {
+        val startTime = System.currentTimeMillis()
+        withContext(Dispatchers.Main) { _isLoading.value = true }
+        val (isCompatible, reason) = isDeviceCompatible()
+        if (!isCompatible) {
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                _showErrorAlert.value = reason ?: "El dispositivo no es compatible con el modelo de IA."
+                _aiResponse.value = "Error: $reason"
+            }
+            return
+        }
+
+        try {
+            val modelDir = getApplication<Application>().filesDir
+            // El formato recomendado para LiteRT-LM es .litertlm
+            // Para Gemma 4 E2B (Effective 2B), el archivo suele pesar ~1.3GB
+            val modelFile = File(modelDir, "gemma-4-E4B-it.litertlm")
+            val modelPath = modelFile.absolutePath
+
+            if (!modelFile.exists()) {
                 withContext(Dispatchers.Main) {
                     _isLoading.value = false
-                    _showErrorAlert.value = reason ?: "El dispositivo no es compatible con el modelo de IA."
-                    _aiResponse.value = "Error: $reason"
+                    _showErrorAlert.value = "No se encontró el modelo Gemma 4 en: $modelPath. Asegúrate de descargar la versión .litertlm oficial."
+                    _aiResponse.value = "Error: Modelo no encontrado."
                 }
-                return@launch
+                return
             }
 
-            try {
-                val modelDir = getApplication<Application>().filesDir
-                // El formato recomendado para LiteRT-LM es .litertlm
-                // Para Gemma 4 E2B (Effective 2B), el archivo suele pesar ~1.3GB
-                val modelFile = File(modelDir, "gemma-4-E4B-it.litertlm")
-                val modelPath = modelFile.absolutePath
-
-                if (!modelFile.exists()) {
-                    withContext(Dispatchers.Main) {
-                        _isLoading.value = false
-                        _showErrorAlert.value = "No se encontró el modelo Gemma 4 en: $modelPath. Asegúrate de descargar la versión .litertlm oficial."
-                        _aiResponse.value = "Error: Modelo no encontrado."
-                    }
-                    return@launch
-                }
-
-                Log.d("HomeViewModel", "Cargando motor LiteRT-LM desde: $modelPath")
-                withContext(Dispatchers.Main) {
-                    _aiResponse.value = formatHtml("Intentando cargar la inteligencia artificial ... espera porfavor.")
-                }
-
-                val config = EngineConfig(
-                    modelPath = modelPath,
-                    backend = Backend.GPU(), // Usar GPU para el modelo de lenguaje
-                    visionBackend = Backend.GPU(), // Usar GPU para el codificador de imágenes
-                    maxNumTokens = 2048
-                )
-
-                val newEngine = Engine(config)
-                newEngine.initialize()
-                engine = newEngine
-                
-                // Crear la sesión de conversación
-                conversation = newEngine.createConversation()
-
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                    _aiResponse.value = "Modelo Gemma 4 (LiteRT-LM) listo para usar."
-                    Log.d("HomeViewModel", "LiteRT-LM Engine inicializado con éxito.")
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                    val errorMsg = e.localizedMessage ?: "Error desconocido"
-                    _aiResponse.value = "Error al cargar LiteRT-LM: $errorMsg"
-                    _showErrorAlert.value = "Error de inicialización: El archivo podría estar corrupto o no ser compatible con el backend GPU."
-                    Log.e("HomeViewModel", "Error fatal al inicializar: $errorMsg", e)
-                }
+            Log.d("HomeViewModel", "Cargando motor LiteRT-LM desde: $modelPath")
+            withContext(Dispatchers.Main) {
+                _aiResponse.value = formatHtml("Intentando cargar la inteligencia artificial ... espera porfavor.")
             }
+
+            val config = EngineConfig(
+                modelPath = modelPath,
+                backend = Backend.GPU(), // Usar GPU para el modelo de lenguaje
+                visionBackend = Backend.GPU(), // Usar GPU para el codificador de imágenes
+                maxNumTokens = 2048
+            )
+
+            val newEngine = Engine(config)
+            newEngine.initialize()
+            engine = newEngine
+            
+            // Crear la sesión de conversación
+            conversation = newEngine.createConversation()
+
+            val endTime = System.currentTimeMillis()
+            val durationSeconds = (endTime - startTime) / 1000.0
+            saveInitializationTime(durationSeconds)
+
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                _aiResponse.value = "Modelo Gemma 4 (LiteRT-LM) listo para usar."
+                Log.d("HomeViewModel", "LiteRT-LM Engine inicializado con éxito en $durationSeconds segundos.")
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                _isLoading.value = false
+                val errorMsg = e.localizedMessage ?: "Error desconocido"
+                _aiResponse.value = "Error al cargar LiteRT-LM: $errorMsg"
+                _showErrorAlert.value = "Error de inicialización: El archivo podría estar corrupto o no ser compatible con el backend GPU."
+                Log.e("HomeViewModel", "Error fatal al inicializar: $errorMsg", e)
+            }
+        }
+    }
+
+    private fun saveInitializationTime(seconds: Double) {
+        try {
+            val statsDir = File(getApplication<Application>().filesDir, "estadistica")
+            if (!statsDir.exists()) statsDir.mkdirs()
+            val statsFile = File(statsDir, "ai_tiempo_de_inicializado.txt")
+            statsFile.appendText("$seconds\n")
+            Log.d("HomeViewModel", "Tiempo de inicialización guardado: $seconds s")
+        } catch (e: Exception) {
+            Log.e("HomeViewModel", "Error al guardar el tiempo de inicialización", e)
         }
     }
 
     fun sendPrompt(prompt: String, imagePaths: List<String> = emptyList()) {
         _promptText.value = prompt
         
-        if (engine == null || conversation == null) {
-            _aiResponse.value = "El motor de IA no está inicializado.."
-            return
-        }
-
         _aiResponse.value = "Gemma 4 está procesando..."
         _isLoading.value = true
         
         inferenceJob?.cancel()
         inferenceJob = viewModelScope.launch(Dispatchers.IO) {
+            if (engine == null || conversation == null) {
+                setupModelInternal()
+            }
+
+            if (engine == null || conversation == null) {
+                // El error ya fue reportado en setupModelInternal
+                return@launch
+            }
+
             try {
                 val responseBuilder = StringBuilder()
                 

@@ -192,7 +192,7 @@
         android:layout_height="300dp"
         android:layout_marginTop="4dp"
         android:padding="16dp"
-        android:text="Cargando AI ... porfavor espera."
+        android:text="1.Ingresa una instrucción para la inteligencia artificial en el texto blanco de arriba. \n \n 2.opcional agrega una imagen o documento pdf \n\n por ejemplo puedes decir 'busca los nombres que aparecen en la foto' "
         android:textSize="20sp"
         android:background="@drawable/ai_response_border"
         android:scrollbars="vertical"
