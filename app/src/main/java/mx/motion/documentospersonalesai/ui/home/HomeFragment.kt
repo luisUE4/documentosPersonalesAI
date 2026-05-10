@@ -127,8 +127,9 @@ class HomeFragment : Fragment() {
             homeViewModel.stopInference()
         }
 
-        binding.etInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEND) {
+        binding.etInput.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEND || 
+                (event != null && event.keyCode == android.view.KeyEvent.KEYCODE_ENTER && event.action == android.view.KeyEvent.ACTION_DOWN)) {
                 sendQuery()
                 true
             } else {

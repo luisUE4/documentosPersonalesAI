@@ -1,6 +1,7 @@
 package mx.motion.documentospersonalesai
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -11,6 +12,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import mx.motion.documentospersonalesai.databinding.ActivityMainBinding
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,6 +39,31 @@ class MainActivity : AppCompatActivity() {
       )
       setupActionBarWithNavController(navController, appBarConfiguration)
       navView.setupWithNavController(navController)
+
+      // Limpiar archivos temporales al iniciar para asegurar un estado limpio
+      cleanupFiles()
+   }
+
+   override fun onDestroy() {
+      super.onDestroy()
+      // Limpiar archivos temporales al cerrar la actividad principal
+      cleanupFiles()
+   }
+
+   private fun cleanupFiles() {
+      try {
+         val foldersToClear = listOf("images", "fotosPDF")
+         foldersToClear.forEach { folderName ->
+            val folder = File(filesDir, folderName)
+            if (folder.exists() && folder.isDirectory) {
+               folder.listFiles()?.forEach { it.delete() }
+            }
+         }
+         // También limpiar cache por si acaso
+         cacheDir.listFiles()?.forEach { it.delete() }
+      } catch (e: Exception) {
+         Log.e("MainActivity", "Error al limpiar archivos: ${e.message}")
+      }
    }
 
    override fun onCreateOptionsMenu(menu: Menu): Boolean {
