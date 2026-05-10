@@ -101,7 +101,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _promptText.value = prompt
         
         if (engine == null || conversation == null) {
-            _aiResponse.value = "El motor de IA no está inicializado."
+            _aiResponse.value = "El motor de IA no está inicializado.."
             return
         }
 
