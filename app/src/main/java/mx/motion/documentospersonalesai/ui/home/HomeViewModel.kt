@@ -30,6 +30,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _showErrorAlert = MutableLiveData<String?>()
     val showErrorAlert: LiveData<String?> = _showErrorAlert
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
     private var engine: Engine? = null
     private var conversation: Conversation? = null
 
@@ -42,9 +45,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (engine != null) return
 
         viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { _isLoading.value = true }
             val (isCompatible, reason) = isDeviceCompatible()
             if (!isCompatible) {
                 withContext(Dispatchers.Main) {
+                    _isLoading.value = false
                     _showErrorAlert.value = reason ?: "El dispositivo no es compatible con el modelo de IA."
                     _aiResponse.value = "Error: $reason"
                 }
@@ -60,6 +65,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (!modelFile.exists()) {
                     withContext(Dispatchers.Main) {
+                        _isLoading.value = false
                         _showErrorAlert.value = "No se encontró el modelo Gemma 4 en: $modelPath. Asegúrate de descargar la versión .litertlm oficial."
                         _aiResponse.value = "Error: Modelo no encontrado."
                     }
@@ -86,11 +92,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 conversation = newEngine.createConversation()
 
                 withContext(Dispatchers.Main) {
+                    _isLoading.value = false
                     _aiResponse.value = "Modelo Gemma 4 (LiteRT-LM) listo para usar."
                     Log.d("HomeViewModel", "LiteRT-LM Engine inicializado con éxito.")
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    _isLoading.value = false
                     val errorMsg = e.localizedMessage ?: "Error desconocido"
                     _aiResponse.value = "Error al cargar LiteRT-LM: $errorMsg"
                     _showErrorAlert.value = "Error de inicialización: El archivo podría estar corrupto o no ser compatible con el backend GPU."
@@ -109,6 +117,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _aiResponse.value = "Gemma 4 está procesando..."
+        _isLoading.value = true
         
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -129,6 +138,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 // LiteRT-LM usa Flows de Kotlin para streaming por defecto
                 conversation?.sendMessageAsync(contents)?.collect { token ->
+                    if (responseBuilder.isEmpty()) {
+                        withContext(Dispatchers.Main) { _isLoading.value = false }
+                    }
                     responseBuilder.append(token)
                     withContext(Dispatchers.Main) {
                         _aiResponse.value = responseBuilder.toString()
@@ -136,6 +148,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    _isLoading.value = false
                     _aiResponse.value = "Error en inferencia: ${e.localizedMessage}"
                 }
             }

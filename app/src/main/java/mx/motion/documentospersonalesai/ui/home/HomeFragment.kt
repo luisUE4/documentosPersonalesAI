@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
+import mx.motion.documentospersonalesai.R
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -32,6 +33,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var homeViewModel: HomeViewModel
 
+    private var loadingDialog: AlertDialog? = null
     private var photoUri: Uri? = null
     private var currentPhotoPath: String? = null
 
@@ -80,6 +82,18 @@ class HomeFragment : Fragment() {
         // Observar la respuesta de la IA
         homeViewModel.aiResponse.observe(viewLifecycleOwner) {
             binding.textAiResponse.text = Html.fromHtml(it, Html.FROM_HTML_MODE_LEGACY)
+            
+            // Auto-scroll al final cuando llega nuevo texto
+            val scrollAmount = binding.textAiResponse.layout?.getLineTop(binding.textAiResponse.lineCount) ?: 0
+            val viewHeight = binding.textAiResponse.height - binding.textAiResponse.paddingTop - binding.textAiResponse.paddingBottom
+            if (scrollAmount > viewHeight) {
+                binding.textAiResponse.scrollTo(0, scrollAmount - viewHeight)
+            }
+        }
+
+        // Observar estado de carga
+        homeViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) showLoadingDialog() else hideLoadingDialog()
         }
 
         // Observar alertas de error
@@ -160,6 +174,21 @@ class HomeFragment : Fragment() {
     private fun hideKeyboard() {
         val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(binding.etInput.windowToken, 0)
+    }
+
+    private fun showLoadingDialog() {
+        if (loadingDialog == null) {
+            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_loading, null)
+            loadingDialog = AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(false)
+                .create()
+        }
+        loadingDialog?.show()
+    }
+
+    private fun hideLoadingDialog() {
+        loadingDialog?.dismiss()
     }
 
     private fun openCamera() {
