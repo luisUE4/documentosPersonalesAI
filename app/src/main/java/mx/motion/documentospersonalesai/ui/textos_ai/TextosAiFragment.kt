@@ -6,6 +6,7 @@ import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -40,23 +41,19 @@ class TextosAiFragment : Fragment() {
     private fun setupUI() {
         binding.textAiResponse.movementMethod = ScrollingMovementMethod()
 
-        binding.btnSend.setOnClickListener {
-            val instruction = binding.etInput.text.toString()
-            if (instruction.isBlank()) {
-                Toast.makeText(context, "Escribe una instrucción", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+        binding.btnSend.setOnClickListener { sendQuery() }
 
-            val manualText = binding.textoParaAnalizar.text.toString()
-            val fullContext = if (manualText.isNotBlank()) {
-                "TEXTO PARA ANALIZAR:\n$manualText"
+        binding.etInput.setOnEditorActionListener { _, actionId, event ->
+            val isEnterKeyPressed = event != null &&
+                    event.keyCode == android.view.KeyEvent.KEYCODE_ENTER &&
+                    event.action == android.view.KeyEvent.ACTION_DOWN
+
+            if (actionId == EditorInfo.IME_ACTION_SEND || isEnterKeyPressed) {
+                sendQuery()
+                true
             } else {
-                ""
+                false
             }
-
-            viewModel.sendPrompt(instruction, fullContext)
-            binding.etInput.text.clear()
-            hideKeyboard()
         }
 
         binding.btnStop.setOnClickListener {
@@ -85,6 +82,25 @@ class TextosAiFragment : Fragment() {
                 Toast.makeText(context, "Copiado al portapapeles", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun sendQuery() {
+        val instruction = binding.etInput.text.toString()
+        if (instruction.isBlank()) {
+            Toast.makeText(context, "Escribe una instrucción", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val manualText = binding.textoParaAnalizar.text.toString()
+        val fullContext = if (manualText.isNotBlank()) {
+            "TEXTO PARA ANALIZAR:\n$manualText"
+        } else {
+            ""
+        }
+
+        viewModel.sendPrompt(instruction, fullContext)
+        binding.etInput.text.clear()
+        hideKeyboard()
     }
 
     private fun observeViewModel() {

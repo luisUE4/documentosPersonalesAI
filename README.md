@@ -29,6 +29,8 @@
 
 
 TODO
-*agregar dictado de voz y acciones de enviar usando email
-*agregar secicon de textos ai , donde se puede elegir un texto
+*seccion dictado o transcripcion  y acciones de enviar usando email
+*que pasa si el prompt es muy largo, el texto amarillo desplaza el texto de respuesta en el layout?
+*que el modelo se cargue en el primer prompt
+*boton para dictar prompt usando las capacidades nativas del telefono ?
 
