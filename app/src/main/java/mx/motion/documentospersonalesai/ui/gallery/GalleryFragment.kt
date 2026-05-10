@@ -52,6 +52,14 @@ class GalleryFragment : Fragment() {
             binding.layoutLoadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
+        galleryViewModel.progressMinutes.observe(viewLifecycleOwner) { progress ->
+            binding.tvLoadingProgress.text = progress
+        }
+
+        binding.btnCancelTranscription.setOnClickListener {
+            galleryViewModel.cancelTranscription()
+        }
+
         binding.btnAudioFile.setOnClickListener {
             binding.textAiResponse.text = ""
             pickAudioLauncher.launch("audio/*")

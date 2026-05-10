@@ -97,17 +97,37 @@
             android:backgroundTint="@android:color/white">
 
             <ProgressBar
+                android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
+                android:id="@+id/tv_loading_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Pensando..."
+                android:text="Procesando..."
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_loading_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="0 / 0 minutos"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel_transcription"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Cancelar"
+                android:textColor="@android:color/holo_red_dark" />
         </LinearLayout>
     </FrameLayout>
 

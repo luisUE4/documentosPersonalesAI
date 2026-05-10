@@ -26,3 +26,9 @@
 
 ---
 *Transformando la gestión de tus documentos personales con el poder de la Inteligencia Artificial local.*
+
+
+TODO
+*agregar dictado de voz y acciones de enviar usando email
+*agregar secicon de textos ai , donde se puede elegir un texto
+
