@@ -17,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -103,6 +104,13 @@ class HomeFragment : Fragment() {
 
         homeViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) showLoadingDialog() else hideLoadingDialog()
+        }
+
+        homeViewModel.statusText.observe(viewLifecycleOwner) { status ->
+            loadingDialog?.findViewById<TextView>(R.id.tv_status_text)?.apply {
+                text = status
+                visibility = if (status.isNullOrBlank()) View.GONE else View.VISIBLE
+            }
         }
 
         homeViewModel.showErrorAlert.observe(viewLifecycleOwner) { errorMessage ->
@@ -252,6 +260,13 @@ class HomeFragment : Fragment() {
                 .create()
         }
         loadingDialog?.show()
+        
+        // Actualizar el status inicial si ya existe en el ViewModel
+        loadingDialog?.findViewById<TextView>(R.id.tv_status_text)?.apply {
+            val status = homeViewModel.statusText.value
+            text = status
+            visibility = if (status.isNullOrBlank()) View.GONE else View.VISIBLE
+        }
     }
 
     private fun hideLoadingDialog() {
@@ -319,6 +334,7 @@ class HomeFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+        homeViewModel.closeModel()
     }
 
     override fun onDestroyView() {

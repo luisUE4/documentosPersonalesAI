@@ -15,6 +15,7 @@ import com.google.ai.edge.litertlm.Content
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import java.io.File
 import android.content.Context
 import android.util.Log
@@ -36,6 +37,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _statusText = MutableLiveData<String?>()
+    val statusText: LiveData<String?> = _statusText
+
     private var engine: Engine? = null
     private var conversation: Conversation? = null
     private var inferenceJob: kotlinx.coroutines.Job? = null
@@ -49,6 +53,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (engine != null) return
 
         val startTime = System.currentTimeMillis()
+        val avgTime = getAverageInitializationTime().toInt().coerceAtLeast(1)
+        
+        val countdownJob = viewModelScope.launch(Dispatchers.Main) {
+            for (i in avgTime downTo 0) {
+                _statusText.value = "inicializando Inteligencia $i segundos restantes"
+                delay(1000)
+            }
+            _statusText.value = "inicializando Inteligencia ... casi listo"
+        }
+
         withContext(Dispatchers.Main) { _isLoading.value = true }
         val (isCompatible, reason) = isDeviceCompatible()
         if (!isCompatible) {
@@ -95,6 +109,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             // Crear la sesión de conversación
             conversation = newEngine.createConversation()
 
+            countdownJob.cancel()
+            withContext(Dispatchers.Main) {
+                _statusText.value = "procesando instruccion ..."
+            }
+
             val endTime = System.currentTimeMillis()
             val durationSeconds = (endTime - startTime) / 1000.0
             saveInitializationTime(durationSeconds)
@@ -115,12 +134,35 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun getAverageInitializationTime(): Double {
+        return try {
+            val statsFile = File(File(getApplication<Application>().filesDir, "estadistica"), "ai_tiempo_de_inicializado.txt")
+            if (statsFile.exists()) {
+                val lines = statsFile.readLines()
+                if (lines.isNotEmpty()) {
+                    lines.mapNotNull { it.toDoubleOrNull() }.average()
+                } else 30.0
+            } else 30.0
+        } catch (e: Exception) {
+            30.0
+        }
+    }
+
     private fun saveInitializationTime(seconds: Double) {
         try {
             val statsDir = File(getApplication<Application>().filesDir, "estadistica")
             if (!statsDir.exists()) statsDir.mkdirs()
             val statsFile = File(statsDir, "ai_tiempo_de_inicializado.txt")
-            statsFile.appendText("$seconds\n")
+            
+            val lines = if (statsFile.exists()) statsFile.readLines() else emptyList()
+            
+            if (lines.size >= 20) {
+                // Si ya hay 20 o más registros, limpiamos y guardamos solo el nuevo
+                statsFile.writeText("$seconds\n")
+                Log.d("HomeViewModel", "Límite de 20 registros alcanzado. Archivo reiniciado con el nuevo tiempo.")
+            } else {
+                statsFile.appendText("$seconds\n")
+            }
             Log.d("HomeViewModel", "Tiempo de inicialización guardado: $seconds s")
         } catch (e: Exception) {
             Log.e("HomeViewModel", "Error al guardar el tiempo de inicialización", e)
@@ -137,6 +179,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         inferenceJob = viewModelScope.launch(Dispatchers.IO) {
             if (engine == null || conversation == null) {
                 setupModelInternal()
+            } else {
+                withContext(Dispatchers.Main) {
+                    _statusText.value = null
+                }
             }
 
             if (engine == null || conversation == null) {
