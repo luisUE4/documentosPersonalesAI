@@ -27,7 +27,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="8dp"
         android:hint="Ingresa el texto aquí"
-        android:inputType="text"
+        android:inputType="textMultiLine|textCapSentences|textImeMultiLine"
         android:maxLines="4"
         android:scrollHorizontally="false"
         android:gravity="top"
@@ -177,5 +177,19 @@
         app:layout_constraintTop_toBottomOf="@id/layout_prompt_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_copy"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:text="Copiar"
+        android:textSize="12sp"
+        app:icon="@drawable/ic_copy"
+        app:iconSize="18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_ai_response" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

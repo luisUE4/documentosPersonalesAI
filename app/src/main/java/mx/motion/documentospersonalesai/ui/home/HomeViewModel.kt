@@ -21,6 +21,8 @@ import android.util.Log
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
+    ///TODO funcionalidad para convertir audio a texto y preguntar informacion
+
     private val _promptText = MutableLiveData<String>()
     val promptText: LiveData<String> = _promptText
 

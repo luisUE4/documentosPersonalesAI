@@ -127,11 +127,24 @@ class HomeFragment : Fragment() {
             homeViewModel.stopInference()
         }
 
+        binding.btnCopy.setOnClickListener {
+            val textToCopy = binding.textAiResponse.text.toString()
+            if (textToCopy.isNotBlank()) {
+                val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Respuesta de IA", textToCopy)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(requireContext(), "Texto copiado al portapapeles", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
         binding.etInput.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEND || 
-                (event != null && event.keyCode == android.view.KeyEvent.KEYCODE_ENTER && event.action == android.view.KeyEvent.ACTION_DOWN)) {
+            val isEnterKeyPressed = event != null && 
+                    event.keyCode == android.view.KeyEvent.KEYCODE_ENTER && 
+                    event.action == android.view.KeyEvent.ACTION_DOWN
+            
+            if (actionId == EditorInfo.IME_ACTION_SEND || isEnterKeyPressed) {
                 sendQuery()
-                true
+                true // Consumir el evento para evitar saltos de línea
             } else {
                 false
             }
