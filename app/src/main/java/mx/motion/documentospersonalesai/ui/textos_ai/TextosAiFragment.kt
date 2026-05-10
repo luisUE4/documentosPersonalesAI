@@ -1,4 +1,4 @@
-package mx.motion.documentospersonalesai.ui.slideshow
+package mx.motion.documentospersonalesai.ui.textos_ai
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import mx.motion.documentospersonalesai.databinding.FragmentSlideshowBinding
+import mx.motion.documentospersonalesai.databinding.FragmentTextosAiBinding
 
-class SlideshowFragment : Fragment() {
+class TextosAiFragment : Fragment() {
 
-   private var _binding: FragmentSlideshowBinding? = null
+   private var _binding: FragmentTextosAiBinding? = null
 
    // This property is only valid between onCreateView and
    // onDestroyView.
@@ -22,14 +22,14 @@ class SlideshowFragment : Fragment() {
       container: ViewGroup?,
       savedInstanceState: Bundle?
    ): View {
-      val slideshowViewModel =
-         ViewModelProvider(this).get(SlideshowViewModel::class.java)
+      val textosAiViewModel =
+         ViewModelProvider(this).get(TextosAiViewModel::class.java)
 
-      _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
+      _binding = FragmentTextosAiBinding.inflate(inflater, container, false)
       val root: View = binding.root
 
-      val textView: TextView = binding.textSlideshow
-      slideshowViewModel.text.observe(viewLifecycleOwner) {
+      val textView: TextView = binding.textTextosAi
+      textosAiViewModel.text.observe(viewLifecycleOwner) {
          textView.text = it
       }
       return root
