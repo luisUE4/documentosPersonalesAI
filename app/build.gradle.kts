@@ -15,6 +15,10 @@ android {
       versionName = "1.0"
 
       testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+      ndk {
+         abiFilters.add("arm64-v8a")
+      }
    }
 
    buildTypes {
@@ -40,13 +44,17 @@ android {
    // Al agregar estas extensiones, Android las dejará "planas" en el disco
    // permitiendo que el motor de IA haga mmap (memory mapping) correctamente.
    androidResources {
-        noCompress += listOf("onnx", "bin", "data", "onnx_data")
+        noCompress += listOf("onnx", "bin", "data", "onnx_data", "litertlm")
    }
 
    packaging {
       resources {
          // Esto evita que archivos comunes de IA se compriman
          excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      }
+      jniLibs {
+         // Esto alinea las librerías nativas para que sean compatibles con Android 16
+         useLegacyPackaging = false
       }
    }
 }
@@ -60,7 +68,7 @@ dependencies {
    implementation(libs.androidx.lifecycle.viewmodel.ktx)
    implementation(libs.androidx.navigation.fragment.ktx)
    implementation(libs.androidx.navigation.ui.ktx)
-   implementation(libs.mediapipe.tasks.genai)
+   implementation(libs.litert.lm)
    testImplementation(libs.junit)
    androidTestImplementation(libs.androidx.junit)
    androidTestImplementation(libs.androidx.espresso.core)

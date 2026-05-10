@@ -12,7 +12,7 @@ lifecycleLivedataKtx = "2.9.3"
 lifecycleViewmodelKtx = "2.9.3"
 navigationFragmentKtx = "2.9.3"
 navigationUiKtx = "2.9.3"
-tasks-genai = "0.10.14"
+litertlm = "0.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,7 +26,7 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
-mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "tasks-genai" }
+litert-lm = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
