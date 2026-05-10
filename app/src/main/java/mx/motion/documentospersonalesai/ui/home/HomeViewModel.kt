@@ -35,6 +35,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private var engine: Engine? = null
     private var conversation: Conversation? = null
+    private var inferenceJob: kotlinx.coroutines.Job? = null
 
     private fun formatHtml(text: String): String {
         val formatted = text.replace("\n", "<br>")
@@ -119,7 +120,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _aiResponse.value = "Gemma 4 está procesando..."
         _isLoading.value = true
         
-        viewModelScope.launch(Dispatchers.IO) {
+        inferenceJob?.cancel()
+        inferenceJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 val responseBuilder = StringBuilder()
                 
@@ -147,12 +149,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _isLoading.value = false
-                    _aiResponse.value = "Error en inferencia: ${e.localizedMessage}"
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    withContext(Dispatchers.Main) {
+                        _isLoading.value = false
+                        _aiResponse.value = "Error en inferencia: ${e.localizedMessage}"
+                    }
                 }
             }
         }
+    }
+
+    fun stopInference() {
+        inferenceJob?.cancel()
+        _isLoading.value = false
+        _aiResponse.value = _aiResponse.value + " [DETENIDO]"
     }
 
     fun clearErrorAlert() {

@@ -89,19 +89,40 @@
         app:layout_constraintStart_toEndOf="@+id/btn_gallery"
         app:layout_constraintTop_toTopOf="@+id/btn_camera" />
 
-    <TextView
-        android:id="@+id/text_input_ai_prompt"
+    <LinearLayout
+        android:id="@+id/layout_prompt_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        android:textColor="#FFD700"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/btn_camera"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/text_input_ai_prompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:maxWidth="300dp"
+            android:textAlignment="center"
+            android:textColor="#FFD700"
+            android:textSize="18sp" />
+
+        <ImageButton
+            android:id="@+id/btn_stop"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Detener"
+            android:src="@android:drawable/ic_media_pause"
+            app:tint="@android:color/holo_red_light" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layout_attached_container"
@@ -114,7 +135,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_input_ai_prompt"
+        app:layout_constraintTop_toBottomOf="@id/layout_prompt_container"
         tools:visibility="visible">
 
         <TextView

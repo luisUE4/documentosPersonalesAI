@@ -89,7 +89,7 @@ class HomeFragment : Fragment() {
 
         homeViewModel.promptText.observe(viewLifecycleOwner) {
             binding.textInputAiPrompt.text = it
-            binding.textInputAiPrompt.visibility = if (it.isNullOrBlank()) View.GONE else View.VISIBLE
+            binding.layoutPromptContainer.visibility = if (it.isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
         homeViewModel.aiResponse.observe(viewLifecycleOwner) {
@@ -122,6 +122,10 @@ class HomeFragment : Fragment() {
             pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         binding.btnPdf.setOnClickListener { pickPdfLauncher.launch(arrayOf("application/pdf")) }
+
+        binding.btnStop.setOnClickListener {
+            homeViewModel.stopInference()
+        }
 
         binding.etInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
