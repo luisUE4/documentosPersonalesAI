@@ -60,7 +60,7 @@
         android:layout_width="0dp"
         android:layout_height="200dp"
         android:padding="16dp"
-        android:text="tu_texto_muy_largo"
+        android:text="Cargando AI ... porfavor espera."
         android:scrollbars="vertical"
         android:fadeScrollbars="false"
         android:maxLines="100"

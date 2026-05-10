@@ -31,6 +31,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private var engine: Engine? = null
     private var conversation: Conversation? = null
 
+    private fun formatHtml(text: String): String {
+        val formatted = text.replace("\n", "<br>")
+        return "<b><font color='#FFD700'>$formatted</font></b>"
+    }
+
     fun setupModel() {
         if (engine != null) return
 
@@ -60,6 +65,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 Log.d("HomeViewModel", "Cargando motor LiteRT-LM desde: $modelPath")
+                withContext(Dispatchers.Main) {
+                    _aiResponse.value = formatHtml("Intentando cargar la inteligencia artificial ... espera porfavor.")
+                }
 
                 val config = EngineConfig(
                     modelPath = modelPath,

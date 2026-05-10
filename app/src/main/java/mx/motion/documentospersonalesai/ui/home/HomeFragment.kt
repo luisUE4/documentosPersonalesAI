@@ -1,6 +1,7 @@
 package mx.motion.documentospersonalesai.ui.home
 
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,7 +38,7 @@ class HomeFragment : Fragment() {
 
         // Observar la respuesta de la IA
         homeViewModel.aiResponse.observe(viewLifecycleOwner) {
-            binding.textAiResponse.text = it
+            binding.textAiResponse.text = Html.fromHtml(it, Html.FROM_HTML_MODE_LEGACY)
         }
 
         // Observar alertas de error
