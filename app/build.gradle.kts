@@ -1,6 +1,5 @@
 plugins {
    alias(libs.plugins.android.application)
-   alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -34,9 +33,7 @@ android {
       sourceCompatibility = JavaVersion.VERSION_11
       targetCompatibility = JavaVersion.VERSION_11
    }
-   kotlinOptions {
-      jvmTarget = "11"
-   }
+
    buildFeatures {
       viewBinding = true
    }
@@ -56,6 +53,12 @@ android {
          // Esto alinea las librerías nativas para que sean compatibles con Android 16
          useLegacyPackaging = false
       }
+   }
+}
+
+kotlin {
+   compilerOptions {
+      jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
    }
 }
 
