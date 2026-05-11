@@ -1,7 +1,10 @@
 package mx.motion.documentospersonalesai.ui.textos_ai
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
 import android.view.View
@@ -10,12 +13,14 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentTextosAiBinding
 import mx.motion.documentospersonalesai.utils.FileHelper
+import java.util.Locale
 
 class TextosAiFragment : Fragment() {
 
@@ -23,6 +28,21 @@ class TextosAiFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var viewModel: TextosAiViewModel
     private var loadingDialog: AlertDialog? = null
+
+    private val speechResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!results.isNullOrEmpty()) {
+                val spokenText = results[0]
+                val currentText = binding.etInput.text.toString()
+                if (currentText.isNotEmpty() && !currentText.endsWith(" ")) {
+                    binding.etInput.append(" ")
+                }
+                binding.etInput.append(spokenText)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +62,8 @@ class TextosAiFragment : Fragment() {
         binding.textAiResponse.movementMethod = ScrollingMovementMethod()
 
         binding.btnSend.setOnClickListener { sendQuery() }
+
+        binding.btnMic.setOnClickListener { startVoiceRecognition() }
 
         binding.etInput.setOnEditorActionListener { _, actionId, event ->
             val isEnterKeyPressed = event != null &&
@@ -113,6 +135,19 @@ class TextosAiFragment : Fragment() {
         viewModel.sendPrompt(instruction, fullContext)
         binding.etInput.text.clear()
         hideKeyboard()
+    }
+
+    private fun startVoiceRecognition() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Habla ahora para dictar tu instrucción")
+        }
+        try {
+            speechResultLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "El dictado por voz no está disponible en este dispositivo", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun observeViewModel() {

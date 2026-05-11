@@ -11,4 +11,5 @@
     <string name="menu_gallery">audio IA</string>
     <string name="menu_textos_ai">textos IA</string>
     <string name="menu_grabacion_voz">Grabación Voz</string>
+    <string name="dictado_voz">Dictado por voz</string>
 </resources>

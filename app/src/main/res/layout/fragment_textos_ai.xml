@@ -61,8 +61,20 @@
                         android:maxLines="4"
                         android:padding="12dp"
                         android:gravity="top"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_send"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_mic"
                         app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+
+                    <ImageButton
+                        android:id="@+id/btn_mic"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_btn_speak_now"
+                        android:contentDescription="@string/dictado_voz"
+                        app:tint="#3e7b87"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_send"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
 

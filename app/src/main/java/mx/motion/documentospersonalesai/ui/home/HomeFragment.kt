@@ -1,5 +1,7 @@
 package mx.motion.documentospersonalesai.ui.home
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -9,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
+import android.speech.RecognizerIntent
 import android.text.Html
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
@@ -18,6 +21,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -46,6 +50,21 @@ class HomeFragment : Fragment() {
     private var loadingDialog: AlertDialog? = null
     private var photoUri: Uri? = null
     private val attachedImagePaths = mutableListOf<String>()
+
+    private val speechResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!results.isNullOrEmpty()) {
+                val spokenText = results[0]
+                val currentText = binding.etInput.text.toString()
+                if (currentText.isNotEmpty() && !currentText.endsWith(" ")) {
+                    binding.etInput.append(" ")
+                }
+                binding.etInput.append(spokenText)
+            }
+        }
+    }
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
         uri?.let {
@@ -126,6 +145,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.btnSend.setOnClickListener { sendQuery() }
+        binding.btnMic.setOnClickListener { startVoiceRecognition() }
         binding.btnCamera.setOnClickListener { openCamera() }
         binding.btnGallery.setOnClickListener {
             pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -142,7 +162,7 @@ class HomeFragment : Fragment() {
                 val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Respuesta de IA", textToCopy)
                 clipboard.setPrimaryClip(clip)
-                android.widget.Toast.makeText(requireContext(), "Texto copiado al portapapeles", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Texto copiado al portapapeles", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -151,9 +171,9 @@ class HomeFragment : Fragment() {
             if (textToSave.isNotBlank()) {
                 val savedFile = FileHelper.saveTextToDownloads(requireContext(), textToSave)
                 if (savedFile != null) {
-                    android.widget.Toast.makeText(requireContext(), "Guardado en Descargas: $savedFile", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Guardado en Descargas: $savedFile", Toast.LENGTH_SHORT).show()
                 } else {
-                    android.widget.Toast.makeText(requireContext(), "Error al guardar", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error al guardar", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -190,6 +210,19 @@ class HomeFragment : Fragment() {
             hideKeyboard()
             binding.etInput.text.clear()
             removeAttachedFile()
+        }
+    }
+
+    private fun startVoiceRecognition() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Habla ahora para dictar tu instrucción")
+        }
+        try {
+            speechResultLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "El dictado por voz no está disponible en este dispositivo", Toast.LENGTH_SHORT).show()
         }
     }
 
