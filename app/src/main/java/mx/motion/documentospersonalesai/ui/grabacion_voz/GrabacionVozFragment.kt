@@ -9,10 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.content.res.ColorStateList
+import android.graphics.Color
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentGrabacionVozBinding
 
@@ -84,24 +89,37 @@ class GrabacionVozFragment : Fragment() {
         }
 
         viewModel.statusMessage.observe(viewLifecycleOwner) { msg ->
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            if (!msg.isNullOrBlank()) {
+                binding.tvStatusMessage.text = msg
+                binding.tvStatusMessage.visibility = View.VISIBLE
+                
+                viewLifecycleOwner.lifecycleScope.launch {
+                    delay(2000)
+                    binding.tvStatusMessage.visibility = View.GONE
+                }
+            }
+        }
+
+        viewModel.isModelReady.observe(viewLifecycleOwner) { isReady ->
+            binding.btnRecord.isEnabled = isReady
+            if (isReady) {
+                binding.btnRecord.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#0b3159"))
+            } else {
+                binding.btnRecord.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#03203f"))
+            }
         }
 
         viewModel.isRecording.observe(viewLifecycleOwner) { isRecording ->
             if (isRecording) {
-                binding.btnRecord.text = "Detener Grabación"
-                binding.btnRecord.setIconResource(android.R.drawable.ic_menu_close_clear_cancel)
-                binding.tvTimer.visibility = View.VISIBLE
+                binding.btnRecord.setImageResource(R.drawable.ic_stop_square)
             } else {
-                binding.btnRecord.text = "Grabar Voz"
-                binding.btnRecord.setIconResource(android.R.drawable.ic_btn_speak_now)
-                binding.tvTimer.visibility = View.GONE
+                binding.btnRecord.setImageResource(android.R.drawable.ic_media_play)
             }
         }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         viewModel.stopRecording()
     }
 
