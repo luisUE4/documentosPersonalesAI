@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentHomeBinding
 import mx.motion.documentospersonalesai.databinding.ItemAttachmentBinding
+import mx.motion.documentospersonalesai.utils.FileHelper
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -142,6 +143,18 @@ class HomeFragment : Fragment() {
                 val clip = android.content.ClipData.newPlainText("Respuesta de IA", textToCopy)
                 clipboard.setPrimaryClip(clip)
                 android.widget.Toast.makeText(requireContext(), "Texto copiado al portapapeles", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSave.setOnClickListener {
+            val textToSave = binding.textAiResponse.text.toString()
+            if (textToSave.isNotBlank()) {
+                val savedFile = FileHelper.saveTextToDownloads(requireContext(), textToSave)
+                if (savedFile != null) {
+                    android.widget.Toast.makeText(requireContext(), "Guardado en Descargas: $savedFile", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    android.widget.Toast.makeText(requireContext(), "Error al guardar", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
 

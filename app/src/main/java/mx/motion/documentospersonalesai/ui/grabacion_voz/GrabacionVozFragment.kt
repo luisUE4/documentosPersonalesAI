@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentGrabacionVozBinding
+import mx.motion.documentospersonalesai.utils.FileHelper
 
 class GrabacionVozFragment : Fragment() {
 
@@ -65,6 +66,18 @@ class GrabacionVozFragment : Fragment() {
                 val clip = android.content.ClipData.newPlainText("Transcripción", text)
                 clipboard.setPrimaryClip(clip)
                 Toast.makeText(context, "Copiado al portapapeles", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSave.setOnClickListener {
+            val text = binding.textAiResponse.text.toString()
+            if (text.isNotBlank()) {
+                val savedFile = FileHelper.saveTextToDownloads(requireContext(), text)
+                if (savedFile != null) {
+                    Toast.makeText(context, "Guardado en Descargas: $savedFile", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

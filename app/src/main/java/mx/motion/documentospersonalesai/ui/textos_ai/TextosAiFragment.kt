@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import mx.motion.documentospersonalesai.R
 import mx.motion.documentospersonalesai.databinding.FragmentTextosAiBinding
+import mx.motion.documentospersonalesai.utils.FileHelper
 
 class TextosAiFragment : Fragment() {
 
@@ -79,6 +80,18 @@ class TextosAiFragment : Fragment() {
                 val clip = android.content.ClipData.newPlainText("Respuesta IA", text)
                 clipboard.setPrimaryClip(clip)
                 Toast.makeText(context, "Copiado al portapapeles", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSave.setOnClickListener {
+            val textToSave = binding.textAiResponse.text.toString()
+            if (textToSave.isNotBlank()) {
+                val savedFile = FileHelper.saveTextToDownloads(requireContext(), textToSave)
+                if (savedFile != null) {
+                    Toast.makeText(context, "Guardado en Descargas: $savedFile", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

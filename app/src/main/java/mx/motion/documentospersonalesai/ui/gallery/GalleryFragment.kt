@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import mx.motion.documentospersonalesai.databinding.FragmentGalleryBinding
+import mx.motion.documentospersonalesai.utils.FileHelper
 import java.io.File
 import java.io.FileOutputStream
 
@@ -72,6 +73,18 @@ class GalleryFragment : Fragment() {
                 val clip = android.content.ClipData.newPlainText("Transcripción de Audio", textToCopy)
                 clipboard.setPrimaryClip(clip)
                 android.widget.Toast.makeText(requireContext(), "Texto copiado al portapapeles", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSave.setOnClickListener {
+            val textToSave = binding.textAiResponse.text.toString()
+            if (textToSave.isNotBlank()) {
+                val savedFile = FileHelper.saveTextToDownloads(requireContext(), textToSave)
+                if (savedFile != null) {
+                    android.widget.Toast.makeText(requireContext(), "Guardado en Descargas: $savedFile", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    android.widget.Toast.makeText(requireContext(), "Error al guardar", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
