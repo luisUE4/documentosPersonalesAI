@@ -22,4 +22,10 @@
         android:name="mx.motion.documentospersonalesai.ui.textos_ai.TextosAiFragment"
         android:label="@string/menu_textos_ai"
         tools:layout="@layout/fragment_textos_ai" />
+
+    <fragment
+        android:id="@+id/nav_grabacion_voz"
+        android:name="mx.motion.documentospersonalesai.ui.grabacion_voz.GrabacionVozFragment"
+        android:label="@string/menu_grabacion_voz"
+        tools:layout="@layout/fragment_grabacion_voz" />
 </navigation>
