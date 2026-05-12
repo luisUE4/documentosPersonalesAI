@@ -2,7 +2,10 @@
 
 > *Transforming the management of your personal documents with the power of local Artificial Intelligence.*
 
-**DocumentosPersonalesAI** is an advanced personal assistant application designed for the intelligent analysis and processing of documents, images, and audio. It operates efficiently and prioritizes user privacy through strict, on-device local processing.
+**DocumentosPersonalesAI** is a **Android AI application assistant** designed for the intelligent analysis and processing of documents, images, and audio. Prioritizes user privacy through strict, on-device local OFFLINE processing with embedded AI model (google gemma 4).
+
+This application can work with the mobile android device completely offline (no internet) and documents are restricted to safe storage of the device. 
+
 
 ---
 
