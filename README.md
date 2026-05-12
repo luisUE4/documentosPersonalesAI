@@ -1,36 +1,47 @@
-# DocumentosPersonalesAI
+Here is the translation into English, preserving your formatting and emojis:
+DocumentosPersonalesAI
 
-**DocumentosPersonalesAI** es una aplicación avanzada de asistencia personal diseñada para el análisis inteligente y procesamiento de documentos, imágenes y audio, funcionando de manera eficiente y priorizando la privacidad del usuario mediante el procesamiento local.
+DocumentosPersonalesAI is an advanced personal assistant application designed for the intelligent analysis and processing of documents, images, and audio, operating efficiently and prioritizing user privacy through local processing.
+Key Features
 
-## Características Principales
+    📸 Photo and PDF Analysis (AI photos): Uses artificial intelligence to analyze and extract relevant information from document photographs or PDF files quickly and easily.
 
-*   **📸 Análisis de Fotos y PDFs (fotos IA):** Utiliza inteligencia artificial para analizar y extraer información relevante de fotografías de documentos o archivos PDF de manera rápida y sencilla.
-*   **🎙️ Transcripción de Audio (audio IA):** Transcribe archivos de audio con alta precisión. Incluye un motor de preprocesamiento basado en **FFmpeg** que optimiza automáticamente el formato del audio para maximizar la velocidad y exactitud de la transcripción.
-*   **📄 Gestión de Textos (textos IA):** Herramientas dedicadas para el manejo y análisis de la información extraída, permitiendo copiar y gestionar los resultados fácilmente.
-*   **🧠 Inteligencia Artificial On-Device:** Implementa modelos de IA locales utilizando **LiteRT (TensorFlow Lite)** y **Vosk**, garantizando que la información sensible se procese de forma segura sin depender de la nube.
-*   **⚡ Interfaz Moderna y Elegante:** Experiencia de usuario optimizada con **Material Design 3**, que incluye estados de procesamiento en tiempo real y un diseño limpio y funcional.
+    🎙️ Audio Transcription (AI audio): Transcribes audio files with high precision. It includes a preprocessing engine based on FFmpeg that automatically optimizes the audio format to maximize transcription speed and accuracy.
 
-## Tecnologías Utilizadas
+    📄 Text Management (AI texts): Dedicated tools for handling and analyzing the extracted information, allowing you to easily copy and manage the results.
 
-*   **Kotlin**: Lenguaje de programación robusto y moderno.
-*   **Arquitectura MVVM**: Separación clara de responsabilidades con ViewModel y LiveData.
-*   **Vosk Android SDK**: Reconocimiento de voz offline de alto rendimiento.
-*   **FFmpegKit**: Procesamiento y conversión profesional de archivos multimedia.
-*   **LiteRT (Google AI Edge)**: Ejecución de modelos de lenguaje y visión en el dispositivo.
-*   **Jetpack Navigation**: Sistema de navegación fluido entre secciones.
+    🧠 On-Device Artificial Intelligence: Implements local AI models using LiteRT (TensorFlow Lite) and Vosk, ensuring that sensitive information is processed securely without relying on the cloud.
 
-## Requisitos y Configuración
+    ⚡ Modern and Elegant Interface: Optimized user experience with Material Design 3, including real-time processing states and a clean, functional design.
 
-*   **Android SDK**: Nivel de API mínimo 34.
-*   **Modelos**: Requiere la descarga previa del modelo Vosk (`vosk-model`) y modelos LiteRT configurados en el proyecto para su funcionamiento offline.
+Technologies Used
 
----
-*Transformando la gestión de tus documentos personales con el poder de la Inteligencia Artificial local.*
+    Kotlin: Robust and modern programming language.
 
+    MVVM Architecture: Clear separation of concerns with ViewModel and LiveData.
+
+    Vosk Android SDK: High-performance offline speech recognition.
+
+    FFmpegKit: Professional multimedia file processing and conversion.
+
+    LiteRT (Google AI Edge): On-device execution of language and vision models.
+
+    Jetpack Navigation: Fluid navigation system between sections.
+
+Requirements and Configuration
+
+    Android SDK: Minimum API level 34.
+
+    Models: Requires the prior download of the Vosk model (vosk-model) and LiteRT models configured in the project for offline operation.
+
+Transforming the management of your personal documents with the power of local Artificial Intelligence.
 
 TODO
-*seccion dictado o transcripcion  y acciones de enviar usando email
-*que pasa si el prompt es muy largo, el texto amarillo desplaza el texto de respuesta en el layout?
-*que el modelo se cargue en el primer prompt
-*boton para dictar prompt usando las capacidades nativas del telefono ?
 
+    dictation or transcription section and send via email actions
+
+    what happens if the prompt is too long, does the yellow text displace the response text in the layout?
+
+    load the model on the first prompt
+
+    button to dictate prompt using the phone's native capabilities?
