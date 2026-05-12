@@ -4,7 +4,7 @@ plugins {
 
 android {
    namespace = "mx.motion.documentospersonalesai"
-   compileSdk = 36
+   compileSdk = 37
 
    defaultConfig {
       applicationId = "mx.motion.documentospersonalesai"
